@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"unsafe"
 
 	graph "github.com/kazu69/todos/app/graph"
 	models "github.com/kazu69/todos/app/models"
@@ -73,8 +74,32 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*bool, er
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Todos(ctx context.Context) ([]models.Todo, error) {
-	return r.todos, nil
+func (r *queryResolver) Todos(ctx context.Context, userFilter *models.UserFilter, doneFilter *models.DoneFilter) ([]models.Todo, error) {
+	filterdTodo := r.todos
+
+	if userFilter != nil {
+		userId := *(*string)(unsafe.Pointer(userFilter))
+		tmp := []models.Todo{}
+		for _, todo := range filterdTodo {
+			if todo.User.ID == userId {
+				tmp = append(tmp, todo)
+			}
+		}
+		filterdTodo = tmp
+	}
+
+	if doneFilter != nil {
+		state := *(*bool)(unsafe.Pointer(doneFilter))
+		tmp := []models.Todo{}
+		for _, todo := range filterdTodo {
+			if todo.Done == state {
+				tmp = append(tmp, todo)
+			}
+		}
+		filterdTodo = tmp
+	}
+
+	return filterdTodo, nil
 }
 
 type todoResolver struct{ *Resolver }

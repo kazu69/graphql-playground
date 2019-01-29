@@ -2,6 +2,10 @@
 
 package models
 
+type DoneFilter struct {
+	Done bool `json:"done"`
+}
+
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
@@ -22,4 +26,8 @@ type UpdateTodo struct {
 type User struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
+}
+
+type UserFilter struct {
+	ID string `json:"id"`
 }

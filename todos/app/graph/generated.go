@@ -47,7 +47,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Todos func(childComplexity int) int
+		Todos func(childComplexity int, userFilter *models.UserFilter, doneFilter *models.DoneFilter) int
 	}
 
 	Todo struct {
@@ -69,7 +69,7 @@ type MutationResolver interface {
 	DeleteTodo(ctx context.Context, id string) (*bool, error)
 }
 type QueryResolver interface {
-	Todos(ctx context.Context) ([]models.Todo, error)
+	Todos(ctx context.Context, userFilter *models.UserFilter, doneFilter *models.DoneFilter) ([]models.Todo, error)
 }
 
 func field_Mutation_createTodo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -113,6 +113,40 @@ func field_Mutation_deleteTodo_args(rawArgs map[string]interface{}) (map[string]
 		}
 	}
 	args["id"] = arg0
+	return args, nil
+
+}
+
+func field_Query_todos_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *models.UserFilter
+	if tmp, ok := rawArgs["userFilter"]; ok {
+		var err error
+		var ptr1 models.UserFilter
+		if tmp != nil {
+			ptr1, err = UnmarshalUserFilter(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userFilter"] = arg0
+	var arg1 *models.DoneFilter
+	if tmp, ok := rawArgs["doneFilter"]; ok {
+		var err error
+		var ptr1 models.DoneFilter
+		if tmp != nil {
+			ptr1, err = UnmarshalDoneFilter(tmp)
+			arg1 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["doneFilter"] = arg1
 	return args, nil
 
 }
@@ -216,7 +250,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Todos(childComplexity), true
+		args, err := field_Query_todos_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Todos(childComplexity, args["userFilter"].(*models.UserFilter), args["doneFilter"].(*models.DoneFilter)), true
 
 	case "Todo.id":
 		if e.complexity.Todo.Id == nil {
@@ -496,16 +535,22 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_todos_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
 	rctx := &graphql.ResolverContext{
 		Object: "Query",
-		Args:   nil,
+		Args:   args,
 		Field:  field,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Todos(rctx)
+		return ec.resolvers.Query().Todos(rctx, args["userFilter"].(*models.UserFilter), args["doneFilter"].(*models.DoneFilter))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2304,6 +2349,24 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 	return ec.___Type(ctx, field.Selections, res)
 }
 
+func UnmarshalDoneFilter(v interface{}) (models.DoneFilter, error) {
+	var it models.DoneFilter
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "done":
+			var err error
+			it.Done, err = graphql.UnmarshalBoolean(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func UnmarshalNewTodo(v interface{}) (models.NewTodo, error) {
 	var it models.NewTodo
 	var asMap = v.(map[string]interface{})
@@ -2343,6 +2406,24 @@ func UnmarshalUpdateTodo(v interface{}) (models.UpdateTodo, error) {
 		case "done":
 			var err error
 			it.Done, err = graphql.UnmarshalBoolean(v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func UnmarshalUserFilter(v interface{}) (models.UserFilter, error) {
+	var it models.UserFilter
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+			it.ID, err = graphql.UnmarshalID(v)
 			if err != nil {
 				return it, err
 			}
@@ -2395,7 +2476,7 @@ type User {
 }
 
 type Query {
-  todos: [Todo!]!
+  todos(userFilter: UserFilter, doneFilter: DoneFilter = true): [Todo!]!
 }
 
 input NewTodo {
@@ -2405,6 +2486,14 @@ input NewTodo {
 
 input UpdateTodo {
   id: ID!
+  done: Boolean!
+}
+
+input UserFilter {
+  id: ID!
+}
+
+input DoneFilter {
   done: Boolean!
 }
 

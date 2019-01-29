@@ -11,7 +11,7 @@ type User {
 }
 
 type Query {
-  todos: [Todo!]!
+  todos(userFilter: UserFilter, doneFilter: DoneFilter = true): [Todo!]!
 }
 
 input NewTodo {
@@ -21,6 +21,14 @@ input NewTodo {
 
 input UpdateTodo {
   id: ID!
+  done: Boolean!
+}
+
+input UserFilter {
+  id: ID!
+}
+
+input DoneFilter {
   done: Boolean!
 }
 
