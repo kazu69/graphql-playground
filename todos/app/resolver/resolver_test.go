@@ -7,6 +7,13 @@ import (
 	models "github.com/kazu69/todos/app/models"
 )
 
+func TestTodo(t *testing.T) {
+	t.Skip()
+}
+
+func TestUser(t *testing.T) {
+	t.Skip()
+}
 func TestTodos(t *testing.T) {
 	r := Resolver{
 		todos: []models.Todo{
@@ -65,6 +72,10 @@ func TestTodos(t *testing.T) {
 	if filterdTodo[0].Done != true {
 		t.Fatalf("error: query not correct filtering")
 	}
+}
+
+func TestUsers(t *testing.T) {
+	t.Skip()
 }
 
 func TestCreateTodo(t *testing.T) {

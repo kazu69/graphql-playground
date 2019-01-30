@@ -31,3 +31,7 @@ type User struct {
 type UserFilter struct {
 	ID string `json:"id"`
 }
+
+type UserNameFilter struct {
+	Name *string `json:"name"`
+}

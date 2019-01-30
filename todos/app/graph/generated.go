@@ -47,7 +47,10 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		Todo  func(childComplexity int, id *string) int
+		User  func(childComplexity int, id *string) int
 		Todos func(childComplexity int, userFilter *models.UserFilter, doneFilter *models.DoneFilter) int
+		Users func(childComplexity int, userNameFilter *models.UserNameFilter) int
 	}
 
 	Todo struct {
@@ -69,7 +72,10 @@ type MutationResolver interface {
 	DeleteTodo(ctx context.Context, id string) (*bool, error)
 }
 type QueryResolver interface {
+	Todo(ctx context.Context, id *string) (*models.Todo, error)
+	User(ctx context.Context, id *string) (*models.User, error)
 	Todos(ctx context.Context, userFilter *models.UserFilter, doneFilter *models.DoneFilter) ([]models.Todo, error)
+	Users(ctx context.Context, userNameFilter *models.UserNameFilter) ([]models.User, error)
 }
 
 func field_Mutation_createTodo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
@@ -117,6 +123,46 @@ func field_Mutation_deleteTodo_args(rawArgs map[string]interface{}) (map[string]
 
 }
 
+func field_Query_todo_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		var err error
+		var ptr1 string
+		if tmp != nil {
+			ptr1, err = graphql.UnmarshalID(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+
+}
+
+func field_Query_user_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		var err error
+		var ptr1 string
+		if tmp != nil {
+			ptr1, err = graphql.UnmarshalID(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+
+}
+
 func field_Query_todos_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	args := map[string]interface{}{}
 	var arg0 *models.UserFilter
@@ -147,6 +193,26 @@ func field_Query_todos_args(rawArgs map[string]interface{}) (map[string]interfac
 		}
 	}
 	args["doneFilter"] = arg1
+	return args, nil
+
+}
+
+func field_Query_users_args(rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	args := map[string]interface{}{}
+	var arg0 *models.UserNameFilter
+	if tmp, ok := rawArgs["userNameFilter"]; ok {
+		var err error
+		var ptr1 models.UserNameFilter
+		if tmp != nil {
+			ptr1, err = UnmarshalUserNameFilter(tmp)
+			arg0 = &ptr1
+		}
+
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userNameFilter"] = arg0
 	return args, nil
 
 }
@@ -245,6 +311,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTodo(childComplexity, args["id"].(string)), true
 
+	case "Query.todo":
+		if e.complexity.Query.Todo == nil {
+			break
+		}
+
+		args, err := field_Query_todo_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Todo(childComplexity, args["id"].(*string)), true
+
+	case "Query.user":
+		if e.complexity.Query.User == nil {
+			break
+		}
+
+		args, err := field_Query_user_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.User(childComplexity, args["id"].(*string)), true
+
 	case "Query.todos":
 		if e.complexity.Query.Todos == nil {
 			break
@@ -256,6 +346,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Todos(childComplexity, args["userFilter"].(*models.UserFilter), args["doneFilter"].(*models.DoneFilter)), true
+
+	case "Query.users":
+		if e.complexity.Query.Users == nil {
+			break
+		}
+
+		args, err := field_Query_users_args(rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Users(childComplexity, args["userNameFilter"].(*models.UserNameFilter)), true
 
 	case "Todo.id":
 		if e.complexity.Todo.Id == nil {
@@ -507,10 +609,31 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "todo":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_todo(ctx, field)
+				wg.Done()
+			}(i, field)
+		case "user":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_user(ctx, field)
+				wg.Done()
+			}(i, field)
 		case "todos":
 			wg.Add(1)
 			go func(i int, field graphql.CollectedField) {
 				out.Values[i] = ec._Query_todos(ctx, field)
+				if out.Values[i] == graphql.Null {
+					invalid = true
+				}
+				wg.Done()
+			}(i, field)
+		case "users":
+			wg.Add(1)
+			go func(i int, field graphql.CollectedField) {
+				out.Values[i] = ec._Query_users(ctx, field)
 				if out.Values[i] == graphql.Null {
 					invalid = true
 				}
@@ -529,6 +652,76 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		return graphql.Null
 	}
 	return out
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_todo(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_todo_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Todo(rctx, args["id"].(*string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Todo)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._Todo(ctx, field.Selections, res)
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_user_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().User(rctx, args["id"].(*string))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	if res == nil {
+		return graphql.Null
+	}
+
+	return ec._User(ctx, field.Selections, res)
 }
 
 // nolint: vetshadow
@@ -584,6 +777,72 @@ func (ec *executionContext) _Query_todos(ctx context.Context, field graphql.Coll
 			arr1[idx1] = func() graphql.Marshaler {
 
 				return ec._Todo(ctx, field.Selections, &res[idx1])
+			}()
+		}
+		if isLen1 {
+			f(idx1)
+		} else {
+			go f(idx1)
+		}
+
+	}
+	wg.Wait()
+	return arr1
+}
+
+// nolint: vetshadow
+func (ec *executionContext) _Query_users(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := field_Query_users_args(rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx := &graphql.ResolverContext{
+		Object: "Query",
+		Args:   args,
+		Field:  field,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Users(rctx, args["userNameFilter"].(*models.UserNameFilter))
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+
+	arr1 := make(graphql.Array, len(res))
+	var wg sync.WaitGroup
+
+	isLen1 := len(res) == 1
+	if !isLen1 {
+		wg.Add(len(res))
+	}
+
+	for idx1 := range res {
+		idx1 := idx1
+		rctx := &graphql.ResolverContext{
+			Index:  &idx1,
+			Result: &res[idx1],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(idx1 int) {
+			if !isLen1 {
+				defer wg.Done()
+			}
+			arr1[idx1] = func() graphql.Marshaler {
+
+				return ec._User(ctx, field.Selections, &res[idx1])
 			}()
 		}
 		if isLen1 {
@@ -2433,6 +2692,29 @@ func UnmarshalUserFilter(v interface{}) (models.UserFilter, error) {
 	return it, nil
 }
 
+func UnmarshalUserNameFilter(v interface{}) (models.UserNameFilter, error) {
+	var it models.UserNameFilter
+	var asMap = v.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			var ptr1 string
+			if v != nil {
+				ptr1, err = graphql.UnmarshalString(v)
+				it.Name = &ptr1
+			}
+
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) FieldMiddleware(ctx context.Context, obj interface{}, next graphql.Resolver) (ret interface{}) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -2476,7 +2758,10 @@ type User {
 }
 
 type Query {
+  todo(id: ID): Todo
+  user(id: ID): User
   todos(userFilter: UserFilter, doneFilter: DoneFilter = true): [Todo!]!
+  users(userNameFilter: UserNameFilter): [User!]!
 }
 
 input NewTodo {
@@ -2495,6 +2780,10 @@ input UserFilter {
 
 input DoneFilter {
   done: Boolean!
+}
+
+input UserNameFilter {
+  name: String
 }
 
 type Mutation {

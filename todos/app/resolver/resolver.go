@@ -18,6 +18,7 @@ type Resolver struct {
 func (r *Resolver) Mutation() graph.MutationResolver {
 	return &mutationResolver{r}
 }
+
 func (r *Resolver) Query() graph.QueryResolver {
 	return &queryResolver{r}
 }
@@ -74,6 +75,14 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*bool, er
 
 type queryResolver struct{ *Resolver }
 
+func (r *queryResolver) Todo(ctx context.Context, id *string) (*models.Todo, error) {
+	panic("not implemented")
+}
+
+func (r *queryResolver) User(ctx context.Context, id *string) (*models.User, error) {
+	panic("not implemented")
+}
+
 func (r *queryResolver) Todos(ctx context.Context, userFilter *models.UserFilter, doneFilter *models.DoneFilter) ([]models.Todo, error) {
 	filterdTodo := r.todos
 
@@ -100,6 +109,10 @@ func (r *queryResolver) Todos(ctx context.Context, userFilter *models.UserFilter
 	}
 
 	return filterdTodo, nil
+}
+
+func (r *queryResolver) Users(ctx context.Context, userNameFilter *models.UserNameFilter) ([]models.User, error) {
+	panic("not implemented")
 }
 
 type todoResolver struct{ *Resolver }
