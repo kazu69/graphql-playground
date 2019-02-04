@@ -2,13 +2,17 @@
 
 package models
 
-type DoneFilter struct {
+type IsDone struct {
 	Done bool `json:"done"`
 }
 
 type NewTodo struct {
 	Text   string `json:"text"`
 	UserID string `json:"userId"`
+}
+
+type NewUser struct {
+	Name string `json:"name"`
 }
 
 type Todo struct {
@@ -23,15 +27,16 @@ type UpdateTodo struct {
 	Done bool   `json:"done"`
 }
 
-type User struct {
-	ID   string `json:"id"`
+type UpdateUser struct {
 	Name string `json:"name"`
 }
 
-type UserFilter struct {
-	ID string `json:"id"`
+type User struct {
+	ID    string `json:"id"`
+	Name  string `json:"name"`
+	Todos []Todo `json:"Todos"`
 }
 
-type UserNameFilter struct {
-	Name *string `json:"name"`
+type UserName struct {
+	Name string `json:"name"`
 }

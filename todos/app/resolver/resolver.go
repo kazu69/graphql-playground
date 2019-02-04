@@ -5,14 +5,16 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"unsafe"
 
 	graph "github.com/kazu69/todos/app/graph"
 	models "github.com/kazu69/todos/app/models"
 )
 
 type Resolver struct {
+	todo  models.Todo
+	user  models.User
 	todos []models.Todo
+	users []models.User
 }
 
 func (r *Resolver) Mutation() graph.MutationResolver {
@@ -54,7 +56,7 @@ func (r *mutationResolver) UpdateTodo(ctx context.Context, input models.UpdateTo
 	return affected, nil
 }
 
-func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*bool, error) {
+func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (bool, error) {
 	newTodos := []models.Todo{}
 	var deleted bool
 	for _, todo := range r.todos {
@@ -67,56 +69,51 @@ func (r *mutationResolver) DeleteTodo(ctx context.Context, id string) (*bool, er
 
 	if deleted {
 		r.todos = newTodos
-		return &deleted, nil
+		return deleted, nil
 	}
 
-	return &deleted, errors.New("Todo is not found")
+	return deleted, errors.New("Todo is not found")
+}
+
+func (r *mutationResolver) CreateUser(ctx context.Context, input models.NewUser) (models.User, error) {
+	panic("Not implement")
+}
+
+func (r *mutationResolver) UpdateUser(ctx context.Context, input models.UpdateUser) (models.User, error) {
+	panic("Not implement")
+}
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
+	panic("Not implement")
 }
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Todo(ctx context.Context, id *string) (*models.Todo, error) {
-	panic("not implemented")
-}
-
-func (r *queryResolver) User(ctx context.Context, id *string) (*models.User, error) {
-	panic("not implemented")
-}
-
-func (r *queryResolver) Todos(ctx context.Context, userFilter *models.UserFilter, doneFilter *models.DoneFilter) ([]models.Todo, error) {
-	filterdTodo := r.todos
-
-	if userFilter != nil {
-		userId := *(*string)(unsafe.Pointer(userFilter))
-		tmp := []models.Todo{}
-		for _, todo := range filterdTodo {
-			if todo.User.ID == userId {
-				tmp = append(tmp, todo)
-			}
+func (r *queryResolver) Todo(ctx context.Context, id string) (*models.Todo, error) {
+	var response models.Todo
+	for _, todo := range r.todos {
+		if todo.ID == id {
+			response = todo
 		}
-		filterdTodo = tmp
 	}
 
-	if doneFilter != nil {
-		state := *(*bool)(unsafe.Pointer(doneFilter))
-		tmp := []models.Todo{}
-		for _, todo := range filterdTodo {
-			if todo.Done == state {
-				tmp = append(tmp, todo)
-			}
+	return &response, nil
+}
+
+func (r *queryResolver) User(ctx context.Context, id string) (*models.User, error) {
+	var response models.User
+	for _, user := range r.users {
+		if user.ID == id {
+			response = user
 		}
-		filterdTodo = tmp
 	}
-
-	return filterdTodo, nil
+	return &response, nil
 }
 
-func (r *queryResolver) Users(ctx context.Context, userNameFilter *models.UserNameFilter) ([]models.User, error) {
-	panic("not implemented")
+func (r *queryResolver) Todos(ctx context.Context) ([]models.Todo, error) {
+	return r.todos, nil
 }
 
-type todoResolver struct{ *Resolver }
-
-func (r *todoResolver) User(ctx context.Context, obj *models.Todo) (models.User, error) {
-	panic("not implemented")
+func (r *queryResolver) Users(ctx context.Context) ([]models.User, error) {
+	return r.users, nil
 }

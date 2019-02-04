@@ -8,12 +8,67 @@ import (
 )
 
 func TestTodo(t *testing.T) {
-	t.Skip()
+	r := Resolver{
+		todos: []models.Todo{
+			{
+				ID:   "1",
+				Text: "test",
+				Done: false,
+				User: models.User{
+					ID:   "abc",
+					Name: "test_user",
+				},
+			},
+		},
+	}
+
+	qr := queryResolver{&r}
+	ctx := context.Background()
+
+	todo, err := qr.Todo(ctx, "1")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if todo.ID != "1" {
+		t.Fatalf("error: query not correct filtering")
+	}
 }
 
 func TestUser(t *testing.T) {
-	t.Skip()
+	r := Resolver{
+		users: []models.User{
+			{
+				ID:   "123",
+				Name: "Bob",
+				Todos: []models.Todo{
+					{
+						ID:   "1",
+						Text: "test",
+						Done: false,
+						User: models.User{
+							ID:   "123",
+							Name: "Bob",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	qr := queryResolver{&r}
+	ctx := context.Background()
+
+	user, err := qr.User(ctx, "123")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if user.ID != "123" {
+		t.Fatalf("error: query not correct filtering")
+	}
 }
+
 func TestTodos(t *testing.T) {
 	r := Resolver{
 		todos: []models.Todo{
@@ -41,41 +96,42 @@ func TestTodos(t *testing.T) {
 	qr := queryResolver{&r}
 	ctx := context.Background()
 
-	stateFilter := models.DoneFilter{Done: false}
-	userFilter := models.UserFilter{ID: "abc"}
-	filterdTodo, err := qr.Todos(ctx, &userFilter, &stateFilter)
+	_, err := qr.Todos(ctx)
 
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(filterdTodo) > 1 || len(filterdTodo) == 0 {
-		t.Fatalf("error: query todos not exist")
-	}
-
-	if filterdTodo[0].Done != false {
-		t.Fatalf("error: query not correct filtering")
-	}
-
-	stateFilter = models.DoneFilter{Done: true}
-	userFilter = models.UserFilter{ID: "abc"}
-	filterdTodo, err = qr.Todos(ctx, &userFilter, &stateFilter)
-
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if len(filterdTodo) > 1 || len(filterdTodo) == 0 {
-		t.Fatalf("error: query todos not exist")
-	}
-
-	if filterdTodo[0].Done != true {
-		t.Fatalf("error: query not correct filtering")
 	}
 }
 
 func TestUsers(t *testing.T) {
-	t.Skip()
+	r := Resolver{
+		users: []models.User{
+			{
+				ID:   "123",
+				Name: "Bob",
+				Todos: []models.Todo{
+					{
+						ID:   "1",
+						Text: "test",
+						Done: false,
+						User: models.User{
+							ID:   "123",
+							Name: "Bob",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	qr := queryResolver{&r}
+	ctx := context.Background()
+
+	_, err := qr.Users(ctx)
+
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
 }
 
 func TestCreateTodo(t *testing.T) {
@@ -162,7 +218,19 @@ func TestDeleteTodo(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	if result == nil {
+	if result == false {
 		t.Fatalf("error: todo not deleted")
 	}
+}
+
+func TestCreateUser(t *testing.T) {
+	t.Skip()
+}
+
+func TestUpdateUser(t *testing.T) {
+	t.Skip()
+}
+
+func TestDeleteUser(t *testing.T) {
+	t.Skip()
 }

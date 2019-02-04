@@ -8,13 +8,14 @@ type Todo {
 type User {
   id: ID!
   name: String!
+  Todos: [Todo!]!
 }
 
 type Query {
-  todo(id: ID): Todo
-  user(id: ID): User
-  todos(userFilter: UserFilter, doneFilter: DoneFilter = true): [Todo!]!
-  users(userNameFilter: UserNameFilter): [User!]!
+  todo(id: ID!): Todo
+  user(id: ID!): User
+  todos: [Todo!]!
+  users: [User!]!
 }
 
 input NewTodo {
@@ -27,20 +28,27 @@ input UpdateTodo {
   done: Boolean!
 }
 
-input UserFilter {
-  id: ID!
+input UserName {
+  name: String!
 }
 
-input DoneFilter {
+input IsDone {
   done: Boolean!
 }
 
-input UserNameFilter {
-  name: String
+input NewUser {
+  name: String!
+}
+
+input UpdateUser {
+  name: String!
 }
 
 type Mutation {
   createTodo(input: NewTodo!): Todo!
+  createUser(input: NewUser!): User!
   updateTodo(input: UpdateTodo!): Todo!
-  deleteTodo(id: ID!): Boolean
+  updateUser(inout: UpdateUser!): User!
+  deleteTodo(id: ID!): Boolean!
+  deleteUser(id: ID!): Boolean!
 }
