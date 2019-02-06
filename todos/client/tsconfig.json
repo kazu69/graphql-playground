@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": false,
+    "jsx": "react",
+    "lib": ["es2015", "es2016", "es2017", "dom", "esnext.asynciterable"],
+    "target": "es2018",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "allowJs": false,
+    "sourceMap": true,
+    "noImplicitReturns": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
+    },
+    "typeRoots": ["node_modules/@types", "types"]
+  },
+  "exclude": ["node_modules", "src/**/*.test.ts", "src/**/*.test.tsx"]
+}
