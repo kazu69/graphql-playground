@@ -1,5 +1,8 @@
 import * as path from 'path';
 import * as webpack from 'webpack';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import CleanWebpackPlugin from 'clean-webpack-plugin';
+
 
 export default {
   mode: 'development',
@@ -23,6 +26,13 @@ export default {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NamedModulesPlugin(),
+    new CleanWebpackPlugin(['dist']),
+    new HtmlWebpackPlugin({
+      title: 'Todo App',
+      minify: true,
+      cache: true,
+      template: 'src/index.html',
+    })
   ],
   module: {
     rules: [
@@ -44,7 +54,11 @@ export default {
         enforce: 'pre',
         test: /\.js$/,
         loader: 'source-map-loader'
-      }
+      },
+      {
+        test: /\.html$/,
+        loader: 'html-loader'
+      },
     ]
   },
   devServer: {
